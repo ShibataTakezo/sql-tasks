@@ -1,0 +1,85 @@
+#65
+SELECT 口座番号, 日付, 取引事由.取引事由名, COALESCE(入金額, 出金額, 0) AS 取引金額
+FROM 取引
+JOIN 取引事由
+ON 取引.取引事由id = 取引事由.取引事由id
+WHERE 口座番号 = '0311240' OR 口座番号 = '1234161' OR 口座番号 = '2750902'
+ORDER BY 口座番号
+
+#66
+SELECT 口座.口座番号, 口座.名義, 口座.残高, 日付, 入金額, 出金額
+FROM 取引
+JOIN 口座
+ON 取引.口座番号 = 口座.口座番号
+WHERE 取引.口座番号 = '0887132'
+ORDER BY 日付;
+
+#67
+SELECT 取引.口座番号, 口座.名義, 口座.残高
+FROM 取引
+JOIN 口座
+ON 取引.口座番号 = 口座.口座番号
+WHERE 日付 = '2022-03-01';
+
+#68
+SELECT 取引.口座番号, COALESCE(口座.名義, '解約済み'), COALESCE(口座.残高, 0)
+FROM 取引
+LEFT JOIN 口座
+ON 取引.口座番号 = 口座.口座番号
+WHERE 日付 = '2022-03-01';
+
+#69
+SELECT 取引番号, 取引.取引事由id || ':' || COALESCE(取引事由.取引事由名, 'これまで記載なし') AS 取引事由, 日付, 口座番号, 入金額, 出金額
+FROM 取引
+LEFT JOIN 取引事由
+ON 取引.取引事由id = 取引事由.取引事由id
+
+#70
+SELECT COALESCE(取引事由.取引事由id, 取引.取引事由id), 取引事由名
+FROM 取引事由
+FULL JOIN 取引
+ON 取引事由.取引事由id = 取引.取引事由id;
+
+#71
+SELECT 口座.口座番号, 口座.名義, 口座.残高, 日付, 取引事由名, 入金額, 出金額
+FROM 取引
+JOIN 口座
+ON 取引.口座番号 = 口座.口座番号
+JOIN 取引事由
+ON 取引.取引事由id = 取引事由.取引事由id
+WHERE 取引.口座番号 = '0887132'
+ORDER BY 日付;
+
+#72
+SELECT 取引.口座番号, 口座.名義, 口座.残高, 日付 AS 取引の日付, 取引事由id, 入金額, 出金額
+FROM 取引
+JOIN 口座
+ON 取引.口座番号 = 口座.口座番号
+WHERE 口座.残高 >= 5000000 AND (取引.入金額 >= 1000000 OR 取引.出金額 >= 1000000);
+
+#73
+SELECT 取引.口座番号, 口座.名義, 口座.残高, 日付 AS 取引の日付, 取引事由id, 入金額, 出金額
+FROM 取引
+JOIN (SELECT * FROM 口座 WHERE 残高 >= 5000000) AS 口座
+ON 取引.口座番号 = 口座.口座番号
+WHERE 取引.入金額 >= 1000000 OR 取引.出金額 >= 1000000;
+
+#74
+SELECT 口座番号, COUNT(口座番号), 取引カウント.名義
+FROM (SELECT DISTINCT t1.取引番号, t1.口座番号, t1.日付, 口座.名義
+FROM 取引 AS t1
+JOIN 口座
+ON t1.口座番号 = 口座.口座番号
+JOIN 取引 AS t2
+ON t1.日付 = t2.日付
+WHERE t1.日付 = t2.日付 AND t1.口座番号 = t2.口座番号 AND t1.取引番号 <> t2.取引番号) AS 取引カウント
+GROUP BY 口座番号, 取引カウント.名義
+HAVING COUNT(口座番号) >= 3;
+
+#75
+SELECT DISTINCT k1.名義, k1.口座番号, k1.種別, k1.残高, k1.更新日
+FROM 口座 AS k1
+JOIN 口座 AS k2
+ON k1.名義 = k2.名義
+WHERE k1.口座番号 <> k2.口座番号
+ORDER BY 名義, k1.口座番号;
